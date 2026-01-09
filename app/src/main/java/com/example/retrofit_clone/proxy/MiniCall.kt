@@ -1,4 +1,4 @@
-package com.example.retrofit_clone.mini
+package com.example.retrofit_clone.proxy
 
 // 실제 Retrofit의 Call 인터페이스 단순화 버전
 interface MiniCall<T> {

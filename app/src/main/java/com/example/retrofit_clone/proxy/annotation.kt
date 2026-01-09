@@ -1,4 +1,4 @@
-package com.example.retrofit_clone.mini
+package com.example.retrofit_clone.proxy
 
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy

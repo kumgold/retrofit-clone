@@ -6,14 +6,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.retrofit_clone.api.MyApi
-import com.example.retrofit_clone.mini.MiniRetrofit
-import com.example.retrofit_clone.ui.theme.RetrofitCloneTheme
+import com.example.retrofit_clone.proxy.MiniRetrofit
+import com.example.retrofit_clone.proxy.MyApi
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         miniRetrofitTest()
         setContent {
-            RetrofitCloneTheme {
+            MaterialTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
                         name = "Android",
@@ -60,7 +60,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-    RetrofitCloneTheme {
+    MaterialTheme {
         Greeting("Android")
     }
 }
