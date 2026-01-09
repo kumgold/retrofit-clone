@@ -5,7 +5,7 @@
 
 ---
 
-## 1. 핵심 개념: 마법의 원리
+## 1. 핵심 개념
 
 Retrofit의 마법은 **인터페이스를 런타임에 구현체로 만드는 기술**에 있습니다.
 
@@ -14,9 +14,9 @@ Retrofit의 마법은 **인터페이스를 런타임에 구현체로 만드는 �
 
 ---
 
-## 2. 구현하기: Mini Retrofit 만들기
+## 2. 구현하기
 
-### Step 1. 어노테이션 정의 (Annotation)
+### Step 1. 어노테이션 정의
 Retrofit이 어떤 요청을 보내야 할지 식별하기 위한 표식을 만듭니다.
 
 ```kotlin
@@ -122,7 +122,7 @@ fun main() {
 }
 ```
 
-## 3. 심화 학습: 아키텍처 비교
+## 3. 아키텍처 비교
 직접 구현해본 MiniRetrofit과 실제 안드로이드 네트워크 라이브러리들의 관계
 
 ### Proxy vs HttpUrlConnection vs OkHttp vs Retrofit
@@ -133,7 +133,7 @@ fun main() {
 |OkHttp| Square사가 만든 강력한 통신 엔진. Connection Pooling 등으로 성능을 최적화함. |
 |Retrofit| Proxy를 이용해 설계도(인터페이스)를 해석하고, OkHttp에게 작업을 지시하는 관리자.    |
 
-### Retrofit의 기능
+### Retrofit 참고사항
 Retrofit 자체는 Reflection을 사용하기 때문에 미세한 오버헤드가 발생할 수 있지만, 결과적으로 가장 빠른 체감 성능을 냅니다.
 그 이유는 Retrofit이 아니라 내부 엔진(OkHttp)과 처리 방식의 최적화 때문입니다.
 

@@ -1,4 +1,4 @@
-package com.example.retrofit_clone.proxy
+package com.example.retrofit_clone.retrofit
 
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
@@ -29,7 +29,7 @@ class MiniRetrofit(private val baseUrl: String) {
                         return object : MiniCall<String> {
                             override fun execute(): String {
                                 // 실제 네트워크 통신 대신 로그를 찍습니다.
-                                println("🌐 Network Request Sending to: $requestUrl")
+                                println("[MiniRetrofit] Network Request Sending to: $requestUrl")
                                 return "{ \"result\": \"Success\", \"data\": \"Fake Data\" }"
                             }
                         }
