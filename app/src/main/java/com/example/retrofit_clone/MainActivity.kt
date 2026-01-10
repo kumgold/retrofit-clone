@@ -2,25 +2,20 @@ package com.example.retrofit_clone
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.retrofit_clone.retrofit.MiniRetrofit
 import com.example.retrofit_clone.api.MyApi
 import com.example.retrofit_clone.okhttp.Interceptor
 import com.example.retrofit_clone.okhttp.MiniOkHttpClient
 import com.example.retrofit_clone.okhttp.MiniRetrofit2
 import com.example.retrofit_clone.okhttp.Response
+import com.example.retrofit_clone.retrofit.MiniRetrofit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
