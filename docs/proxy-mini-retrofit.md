@@ -12,33 +12,41 @@ Retrofit의 마법은 **인터페이스를 런타임에 구현체로 만드는 �
 *   **Reflection:** 실행 중에 클래스, 메서드, 어노테이션의 정보를 분석하는 기술.
 *   **Dynamic Proxy:** 인터페이스만 정의되어 있을 때, 런타임에 가짜 구현체 객체를 생성하여 메서드 호출을 가로채는(Intercept) 기술.
 
----
-
 ## 2. 구현하기
 
 ### Step 1. 어노테이션 정의
 Retrofit이 어떤 요청을 보내야 할지 식별하기 위한 표식을 만듭니다.
 
 ```kotlin
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-
-// 런타임까지 정보가 살아있어야 하므로 RUNTIME 정책 사용
+// @Retention(RetentionPolicy.RUNTIME)
+// 설명: 이 어노테이션이 언제까지 살아남을지를 정합니다.
+// - SOURCE: 컴파일하면 사라짐 (주석 같은 존재)
+// - CLASS: 바이트코드(.class)에는 남지만 실행 시엔 못 읽음
+// - RUNTIME: 앱이 실행되는 동안에도 코드로 이 정보를 읽을 수 있음
+// Retrofit은 실행 중에 Reflection으로 이 정보를 읽어야 하므로 반드시 RUNTIME이어야 합니다.
 @Retention(RetentionPolicy.RUNTIME)
+
+// @Target(AnnotationTarget.FUNCTION)
+// 설명: 이 어노테이션을 어디에 붙일 수 있는지 정합니다.
+// - FUNCTION: 함수 위에만 붙일 수 있음 (변수나 클래스에 붙이면 에러)
 @Target(AnnotationTarget.FUNCTION)
-annotation class GET(val value: String) // 예: "users/{id}"
+annotation class GET(val value: String) // value는 "users/{id}" 같은 URL 경로를 담는다.
+
 
 @Retention(RetentionPolicy.RUNTIME)
+// @Target(AnnotationTarget.VALUE_PARAMETER)
+// 설명: 함수의 파라미터(인자) 옆에만 붙일 수 있음. 예: fun getUser(@Path id: String)
 @Target(AnnotationTarget.VALUE_PARAMETER)
-annotation class Path(val value: String) // 예: "id"
+annotation class Path(val value: String) // value는 "id" 같은 치환할 키워드를 담습니다.
 ```
 
 ### Step 2. Call 인터페이스 정의
 실행 결과를 감싸줄 래퍼(Wrapper) 인터페이스입니다.
 
 ```kotlin
+// 실제 Retrofit의 Call 인터페이스 단순화 버전
 interface MiniCall<T> {
-    fun execute(): T
+    fun execute(): T // 동기적으로 실행해서 결과 반환
 }
 ```
 
@@ -46,56 +54,103 @@ interface MiniCall<T> {
 Proxy.newProxyInstance를 통해 메서드 호출을 가로채고, URL을 조립하는 로직입니다.
 
 ```kotlin
-import java.lang.reflect.InvocationHandler
-import java.lang.reflect.Method
-import java.lang.reflect.Proxy
-
 class MiniRetrofit(private val baseUrl: String) {
 
+    // <T> create(service: Class<T>): T
+    // 설명: 제네릭 T는 우리가 만든 인터페이스(MyApi) 타입을 의미합니다.
+    // Class<T>는 MyApi::class.java 정보를 받습니다.
     @Suppress("UNCHECKED_CAST")
     fun <T> create(service: Class<T>): T {
-        // Dynamic Proxy: 런타임에 인터페이스 구현체 생성
+
+        // Proxy.newProxyInstance(...)
+        // 설명: 자바의 리플렉션 API를 사용해 가짜 객체(Proxy)를 만드는 명령어입니다.
+        // 이 함수가 성공적으로 실행되면, MyApi 인터페이스를 구현한 객체가 나타납니다.
         return Proxy.newProxyInstance(
+            // service.classLoader
+            // 설명: 클래스 로더를 지정합니다.
+            // MyApi 인터페이스를 읽어들인 Loader에게 이 가짜 객체도 메모리에 올려달라는 뜻입니다.
             service.classLoader,
+
+            // arrayOf(service)
+            // 설명: 이 가짜 객체가 구현해야 할 인터페이스 목록입니다.
+            // 여기서는 [MyApi] 하나만 구현하면 됩니다.
             arrayOf(service),
+
+            // InvocationHandler (익명 클래스 또는 람다)
+            // 설명: 가장 중요한 가로채기(Intercept) 로직입니다.
+            // 사용자가 api.getUser()를 호출할 때마다 실행 흐름이 여기로 점프합니다.
+            // proxy: 가짜 객체 본인 / method: 호출된 메서드 정보(getUser) / args: 넘겨진 인자들(["user123"])
             object : InvocationHandler {
                 override fun invoke(proxy: Any, method: Method, args: Array<out Any>?): Any {
-                    // 1. 메서드 호출 감지 (Interception)
+                    // method.getAnnotation(GET::class.java)
+                    // 설명: 호출된 메서드(getUser) 위에 @GET 어노테이션이 붙어있는지 확인합니다.
+                    // 리플렉션을 사용해 런타임에 코드를 분석하는 겁니다.
                     val getAnnotation = method.getAnnotation(GET::class.java)
-                    
+
                     if (getAnnotation != null) {
-                        // 2. URL 파싱 및 파라미터 바인딩
+                        // URL 조립
+                        // @GET("users/{id}")의 값과 파라미터 "user123"을 합쳐서
+                        // "https://api.github.com/users/user123"을 만듭니다.
                         val requestUrl = buildRequestUrl(getAnnotation.value, method, args)
-                        
-                        // 3. 실행기(Call) 반환 -> 실제 네트워크 요청은 여기서 수행됨
+
+                        // MiniCall 객체 반환 (익명 클래스)
+                        // 설명: Retrofit은 결과를 바로 주지 않고, 실행할 수 있는 명령 객체(Call)를 줍니다.
+                        // 사용자가 나중에 .execute()를 호출해야 진짜 통신이 일어납니다.
                         return object : MiniCall<String> {
                             override fun execute(): String {
-                                println("🌐 Sending Request to: $requestUrl")
-                                // 실제 Retrofit은 여기서 OkHttp를 호출합니다.
-                                return "{ \"status\": 200, \"data\": \"Success\" }"
+                                // 실제 네트워크 통신 대신 로그를 찍습니다.
+                                println("[MiniRetrofit] Network Request Sending to: $requestUrl")
+                                return "{ \"result\": \"Success\", \"data\": \"Fake Data\" }"
                             }
                         }
                     }
+
                     throw IllegalArgumentException("알 수 없는 메서드입니다.")
                 }
             }
-        ) as T
+        ) as T // 만들어진 Object를 T(MyApi) 타입으로 캐스팅해서 반환합니다.
     }
 
+    // URL의 {path} 부분을 실제 인자값으로 교체하는 로직
     private fun buildRequestUrl(endpoint: String, method: Method, args: Array<out Any>?): String {
+        // 초기 URL 설정
+        // baseUrl("https://...") + endpoint("users/{id}")를 합칩니다.
         var finalUrl = baseUrl + endpoint
+
+        // method.parameterAnnotations
+        // 설명: 메서드의 파라미터들에 붙은 어노테이션들을 '전부' 가져옵니다.
+        // 왜 2차원 배열일까요? -> fun test(@Path @NotNull id: String) 처럼
+        // 하나의 파라미터에 어노테이션이 여러 개 붙을 수도 있기 때문입니다.
+        // 구조: [[1번 파라미터의 어노테이션들], [2번 파라미터의 어노테이션들], ...]
         val parameterAnnotations = method.parameterAnnotations
-        
+
+        // 인자가 하나라도 있다면 루프를 돕니다.
         if (args != null) {
+            // 파라미터 개수만큼 반복 (i: 인덱스)
             for (i in args.indices) {
+                // i번째 파라미터에 붙은 어노테이션 목록을 가져옴
                 val annotations = parameterAnnotations[i]
+
+                // 어노테이션 하나하나 검사
                 for (annotation in annotations) {
+                    // @Path 어노테이션 확인
                     if (annotation is Path) {
-                        finalUrl = finalUrl.replace("{${annotation.value}}", args[i].toString())
+                        // 치환할 키 찾기
+                        // annotation.value가 "id"라면 key는 "{id}"가 됩니다.
+                        val key = "{${annotation.value}}" // 예: "{id}"
+
+                        // 실제 값 가져오기
+                        // args[i]에는 사용자가 넘긴 "user123"이 들어있습니다.
+                        val value = args[i].toString()    // 예: "user123"
+
+                        // 문자열 교체
+                        // URL상의 "{id}"를 "user123"으로 바꿔치기합니다.
+                        finalUrl = finalUrl.replace(key, value)
                     }
                 }
             }
         }
+        // 완성된 URL 반환 (예: https://api.github.com/users/user123)
         return finalUrl
     }
 }
@@ -111,14 +166,23 @@ interface MyApi {
     fun getUser(@Path("id") userId: String): MiniCall<String>
 }
 
-fun main() {
-    val retrofit = MiniRetrofit("https://api.github.com/")
-    val api = retrofit.create(MyApi::class.java) // 구현체가 자동 생성됨!
+private val baseUrl = "https://api.github.com/"
+private val userId = "user123"
 
-    val call = api.getUser("dev_user") // 호출을 가로채서 URL 생성
-    val result = call.execute()        // 가짜 통신 실행
+private fun miniRetrofitTest() {
+    // Mini Retrofit 객체 생성
+    val retrofit = MiniRetrofit(baseUrl)
 
-    println("✅ Result: $result")
+    // 인터페이스 구현체 생성 (Dynamic Proxy)
+    val apiService = retrofit.create(MyApi::class.java)
+
+    // 메서드 호출 -> invoke() 실행 -> URL 생성 -> Call 객체 반환
+    val call = apiService.getUser(userId)
+
+    // 실행
+    val result = call.execute()
+
+    println("[MiniRetrofit] 결과: $result")
 }
 ```
 
