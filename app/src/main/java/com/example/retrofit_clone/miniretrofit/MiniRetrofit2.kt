@@ -1,5 +1,7 @@
-package com.example.retrofit_clone.okhttp
+package com.example.retrofit_clone.miniretrofit
 
+import com.example.retrofit_clone.okhttp.MiniOkHttpClient
+import com.example.retrofit_clone.okhttp.Request
 import com.example.retrofit_clone.retrofit.GET
 import com.example.retrofit_clone.retrofit.MiniCall
 import com.example.retrofit_clone.retrofit.Path

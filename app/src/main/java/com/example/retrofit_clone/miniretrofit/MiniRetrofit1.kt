@@ -1,10 +1,13 @@
-package com.example.retrofit_clone.retrofit
+package com.example.retrofit_clone.miniretrofit
 
+import com.example.retrofit_clone.retrofit.GET
+import com.example.retrofit_clone.retrofit.MiniCall
+import com.example.retrofit_clone.retrofit.Path
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 
-class MiniRetrofit(private val baseUrl: String) {
+class MiniRetrofit1(private val baseUrl: String) {
 
     // <T> create(service: Class<T>): T
     // 설명: 제네릭 T는 우리가 만든 인터페이스(MyApi) 타입을 의미합니다.

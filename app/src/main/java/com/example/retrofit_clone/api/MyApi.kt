@@ -10,4 +10,13 @@ interface MyApi {
 
     @GET("posts/{id}")
     fun getPost(@Path("id") id: String): MiniCall<String>
+
+    @GET("users/{id}")
+    fun getUser2(@Path("id") id: String): MiniCall<User>
 }
+
+data class User(
+    val login: String,
+    val id: Int,
+    val bio: String?
+)

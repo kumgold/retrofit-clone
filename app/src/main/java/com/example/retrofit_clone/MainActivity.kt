@@ -3,12 +3,16 @@ package com.example.retrofit_clone
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import com.example.retrofit_clone.adapter.DefaultCallAdapterFactory
 import com.example.retrofit_clone.api.MyApi
+import com.example.retrofit_clone.api.User
+import com.example.retrofit_clone.converter.GsonConverterFactory
 import com.example.retrofit_clone.okhttp.Interceptor
 import com.example.retrofit_clone.okhttp.MiniOkHttpClient
-import com.example.retrofit_clone.okhttp.MiniRetrofit2
+import com.example.retrofit_clone.miniretrofit.MiniRetrofit2
 import com.example.retrofit_clone.okhttp.Response
-import com.example.retrofit_clone.retrofit.MiniRetrofit
+import com.example.retrofit_clone.miniretrofit.MiniRetrofit1
+import com.example.retrofit_clone.miniretrofit.MiniRetrofit3
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,16 +25,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        miniRetrofitTest()
+        miniRetrofit1Test()
 
         CoroutineScope(Dispatchers.IO).launch {
-            miniOkHttpTest()
+            miniRetrofit2Test()
+            miniRetrofit3Test()
         }
     }
 
-    private fun miniRetrofitTest() {
+    private fun miniRetrofit1Test() {
         // Mini Retrofit 객체 생성
-        val retrofit = MiniRetrofit(baseUrl)
+        val retrofit = MiniRetrofit1(baseUrl)
 
         // 인터페이스 구현체 생성 (Dynamic Proxy)
         val apiService = retrofit.create(MyApi::class.java)
@@ -44,7 +49,7 @@ class MainActivity : ComponentActivity() {
         println("[MiniRetrofit] 결과: $result")
     }
 
-    private fun miniOkHttpTest() {
+    private fun miniRetrofit2Test() {
         val loggingInterceptor = object : Interceptor {
             override fun intercept(chain: Interceptor.Chain): Response {
                 val request = chain.request()
@@ -73,5 +78,34 @@ class MainActivity : ComponentActivity() {
         val result = api.getUser(userId).execute() // 네트워크 요청
 
         println("[MiniOkHttp] 최종 결과 Body:\n$result")
+    }
+
+    private fun miniRetrofit3Test() {
+        val client = MiniOkHttpClient()
+
+        // Retrofit 생성 (Builder 패턴 사용)
+        val retrofit = MiniRetrofit3.Builder()
+            .baseUrl(baseUrl)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .addCallAdapterFactory(DefaultCallAdapterFactory())
+            .build()
+
+        val api = retrofit.create(MyApi::class.java)
+
+        try {
+            println("📡 요청 시작...")
+            val call = api.getUser2("jakewharton") // 유명한 안드로이드 개발자 ID
+
+            val user: User = call.execute() // String이 아니라 User 객체가 나옴!
+
+            println("✅ 변환 성공!")
+            println("User Name: ${user.login}")
+            println("User ID: ${user.id}")
+            println("User Bio: ${user.bio}")
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
