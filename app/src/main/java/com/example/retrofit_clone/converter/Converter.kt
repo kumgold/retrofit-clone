@@ -24,11 +24,12 @@ class GsonConverterFactory private constructor(private val gson: Gson) : Convert
         fun create(): GsonConverterFactory = GsonConverterFactory(Gson())
     }
 
+    // 타입(type)으로 변환할 Converter를 만들어 달라고 요청
     override fun responseBodyConverter(type: Type): Converter<String, *>? {
-        // 어떤 타입이든 Gson을 이용해 변환해주는 컨버터 반환
+        // 모든 타입을 처리할 수 있다고 가정하고 컨버터 반환
         return object : Converter<String, Any> {
             override fun convert(value: String): Any {
-                // value(JSON String) -> Type(User Class)
+                // Gson 라이브러리를 사용해 String JSON을 자바 객체(type)로 변환
                 return gson.fromJson(value, type)
             }
         }

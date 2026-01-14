@@ -88,7 +88,6 @@ class MainActivity : ComponentActivity() {
             .baseUrl(baseUrl)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
-            .addCallAdapterFactory(DefaultCallAdapterFactory())
             .build()
 
         val api = retrofit.create(MyApi::class.java)
