@@ -26,6 +26,19 @@ class NetworkInterceptor : Interceptor {
             connection.setRequestProperty(key, value)
         }
 
+        // Body가 있으면 데이터를 쓴다.
+        if (request.body != null) {
+            connection.doOutput = true // "나 뭐 보낼거야!" 설정
+            connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8") // 헤더 설정
+
+            // 데이터를 Stream에 쓴다.
+            connection.outputStream.use { os ->
+                os.write(request.body.toByteArray(Charsets.UTF_8))
+                os.flush()
+            }
+        }
+
+
         // --- 여기서 실제 서버로 요청이 날아갑니다. ---
 
         // 실제 응답 코드 수신 (200, 404...)

@@ -23,3 +23,11 @@ annotation class GET(val value: String) // value는 "users/{id}" 같은 URL 경�
 // 설명: 함수의 파라미터(인자) 옆에만 붙일 수 있음. 예: fun getUser(@Path id: String)
 @Target(AnnotationTarget.VALUE_PARAMETER)
 annotation class Path(val value: String) // value는 "id" 같은 치환할 키워드를 담습니다.
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(AnnotationTarget.FUNCTION)
+annotation class POST(val value: String)
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(AnnotationTarget.VALUE_PARAMETER)
+annotation class Body // 값(value) 없음, 파라미터 자체를 Body로 씀

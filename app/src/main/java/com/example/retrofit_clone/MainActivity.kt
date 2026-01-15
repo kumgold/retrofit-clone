@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import com.example.retrofit_clone.adapter.DefaultCallAdapterFactory
 import com.example.retrofit_clone.api.MyApi
+import com.example.retrofit_clone.api.PostRequest
+import com.example.retrofit_clone.api.PostResponse
 import com.example.retrofit_clone.api.User
 import com.example.retrofit_clone.converter.GsonConverterFactory
 import com.example.retrofit_clone.okhttp.Interceptor
@@ -13,6 +15,7 @@ import com.example.retrofit_clone.miniretrofit.MiniRetrofit2
 import com.example.retrofit_clone.okhttp.Response
 import com.example.retrofit_clone.miniretrofit.MiniRetrofit1
 import com.example.retrofit_clone.miniretrofit.MiniRetrofit3
+import com.example.retrofit_clone.miniretrofit.MiniRetrofit4
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,6 +33,7 @@ class MainActivity : ComponentActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             miniRetrofit2Test()
             miniRetrofit3Test()
+            miniRetrofit4Test()
         }
     }
 
@@ -104,6 +108,41 @@ class MainActivity : ComponentActivity() {
             println("User Bio: ${user.bio}")
 
         } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun miniRetrofit4Test() {
+        val retrofit = MiniRetrofit4.Builder()
+            .baseUrl("https://jsonplaceholder.typicode.com/")
+            .client(MiniOkHttpClient())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build() // DefaultCallAdapter는 내부에서 자동 추가됨
+
+        val api = retrofit.create(MyApi::class.java)
+
+        try {
+            println("📮 POST 요청 시작 (글쓰기)...")
+
+            // 1. 보낼 데이터 생성 (객체)
+            val newPost = PostRequest(
+                title = "MiniRetrofit 만들기",
+                body = "직접 구현하니 정말 재밌네요!",
+                userId = 1
+            )
+
+            // 2. 요청 실행 (내부적으로 객체 -> JSON 변환되어 전송됨)
+            val responseCall = api.createPost(newPost)
+            val result: PostResponse = responseCall.execute()
+
+            // 3. 결과 확인 (서버가 응답한 JSON -> 객체 변환됨)
+            println("✅ POST 성공!")
+            println("Created ID: ${result.id}")
+            println("Title: ${result.title}")
+            println("Body: ${result.body}")
+
+        } catch (e: Exception) {
+            println("❌ 에러 발생: ${e.message}")
             e.printStackTrace()
         }
     }
