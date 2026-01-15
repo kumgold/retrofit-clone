@@ -3,19 +3,19 @@ package com.example.retrofit_clone
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
-import com.example.retrofit_clone.adapter.DefaultCallAdapterFactory
-import com.example.retrofit_clone.api.MyApi
-import com.example.retrofit_clone.api.PostRequest
-import com.example.retrofit_clone.api.PostResponse
-import com.example.retrofit_clone.api.User
-import com.example.retrofit_clone.converter.GsonConverterFactory
-import com.example.retrofit_clone.okhttp.Interceptor
-import com.example.retrofit_clone.okhttp.MiniOkHttpClient
-import com.example.retrofit_clone.miniretrofit.MiniRetrofit2
-import com.example.retrofit_clone.okhttp.Response
-import com.example.retrofit_clone.miniretrofit.MiniRetrofit1
-import com.example.retrofit_clone.miniretrofit.MiniRetrofit3
-import com.example.retrofit_clone.miniretrofit.MiniRetrofit4
+import com.example.retrofit_clone.step3.api.User
+import com.example.retrofit_clone.step2.okhttp.Interceptor
+import com.example.retrofit_clone.step2.MiniRetrofit2
+import com.example.retrofit_clone.step2.okhttp.Response
+import com.example.retrofit_clone.step1.MiniRetrofit1
+import com.example.retrofit_clone.step3.MiniRetrofit3
+import com.example.retrofit_clone.step4.MiniRetrofit4
+import com.example.retrofit_clone.step1.api.MyApi1
+import com.example.retrofit_clone.step2.api.MyApi2
+import com.example.retrofit_clone.step3.api.MyApi3
+import com.example.retrofit_clone.step4.api.MyApi4
+import com.example.retrofit_clone.step4.api.PostRequest
+import com.example.retrofit_clone.step4.api.PostResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
         val retrofit = MiniRetrofit1(baseUrl)
 
         // 인터페이스 구현체 생성 (Dynamic Proxy)
-        val apiService = retrofit.create(MyApi::class.java)
+        val apiService = retrofit.create(MyApi1::class.java)
 
         // 메서드 호출 -> invoke() 실행 -> URL 생성 -> Call 객체 반환
         val call = apiService.getUser(userId)
@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
         }
 
         // OkHttp 클라이언트 생성 (엔진 조립)
-        val okHttpClient = MiniOkHttpClient(
+        val okHttpClient = com.example.retrofit_clone.step2.okhttp.MiniOkHttpClient(
             interceptors = listOf(loggingInterceptor) // 로깅 인터셉터 장착
         )
 
@@ -78,27 +78,27 @@ class MainActivity : ComponentActivity() {
         val retrofit = MiniRetrofit2(baseUrl = baseUrl, client = okHttpClient)
 
         // API 생성 및 호출
-        val api = retrofit.create(MyApi::class.java)
+        val api = retrofit.create(MyApi2::class.java)
         val result = api.getUser(userId).execute() // 네트워크 요청
 
         println("[MiniOkHttp] 최종 결과 Body:\n$result")
     }
 
     private fun miniRetrofit3Test() {
-        val client = MiniOkHttpClient()
+        val client = com.example.retrofit_clone.step3.okhttp.MiniOkHttpClient()
 
         // Retrofit 생성 (Builder 패턴 사용)
         val retrofit = MiniRetrofit3.Builder()
             .baseUrl(baseUrl)
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(com.example.retrofit_clone.step3.converter.GsonConverterFactory.create())
             .build()
 
-        val api = retrofit.create(MyApi::class.java)
+        val api = retrofit.create(MyApi3::class.java)
 
         try {
             println("📡 요청 시작...")
-            val call = api.getUser2("jakewharton") // 유명한 안드로이드 개발자 ID
+            val call = api.getUser("jakewharton") // 유명한 안드로이드 개발자 ID
 
             val user: User = call.execute() // String이 아니라 User 객체가 나옴!
 
@@ -115,11 +115,11 @@ class MainActivity : ComponentActivity() {
     private fun miniRetrofit4Test() {
         val retrofit = MiniRetrofit4.Builder()
             .baseUrl("https://jsonplaceholder.typicode.com/")
-            .client(MiniOkHttpClient())
-            .addConverterFactory(GsonConverterFactory.create())
+            .client(com.example.retrofit_clone.step4.okhttp.MiniOkHttpClient())
+            .addConverterFactory(com.example.retrofit_clone.step4.converter.GsonConverterFactory.create())
             .build() // DefaultCallAdapter는 내부에서 자동 추가됨
 
-        val api = retrofit.create(MyApi::class.java)
+        val api = retrofit.create(MyApi4::class.java)
 
         try {
             println("📮 POST 요청 시작 (글쓰기)...")
