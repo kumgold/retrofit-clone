@@ -50,7 +50,7 @@ class MiniRetrofit4(
                     val postAnno = method.getAnnotation(POST::class.java)
 
                     val httpMethod: String
-                    var urlEndpoint: String
+                    val urlEndpoint: String
 
                     if (getAnno != null) {
                         httpMethod = "GET"
@@ -75,7 +75,7 @@ class MiniRetrofit4(
 
                     // 파라미터들 중 @Body가 붙은 녀석을 찾음
                     method.parameterAnnotations.forEachIndexed { idx, annos ->
-                        annos.filterIsInstance<Body>().forEach {
+                        annos.filterIsInstance<Body>().forEach { _ ->
                             // Body는 인자가 null이면 안됨
                             val bodyArg = args?.get(idx) ?: throw IllegalArgumentException("@Body parameter cannot be null")
 
@@ -124,13 +124,13 @@ class MiniRetrofit4(
                             break
                         }
                     }
-                    if (resConverter == null) throw IllegalArgumentException("No ResponseConverter for $responseType")
 
+                    if (resConverter == null) throw IllegalArgumentException("No ResponseConverter for $responseType")
 
                     // 실행 객체 생성
                     val rawCall = object : MiniCall<Any> {
                         override fun execute(): Any {
-                            // [NEW] requestBodyJson을 함께 실어 보냄
+                            // requestBodyJson을 함께 실어 보냄
                             val request = Request(
                                 url = fullUrl,
                                 method = httpMethod,
