@@ -65,27 +65,6 @@ if (request.body != null) {
 }
 ```
 
-## Flowchart
-
-```mermaid
-graph TD
-    User[User Code] -->|1. createPost(PostObj)| Proxy[MiniRetrofit (Proxy)]
-    
-    subgraph "Serialization Phase"
-        Proxy -->|2. @Body 감지| ConvFactory[Converter Factory]
-        ConvFactory -->|3. requestBodyConverter| Gson[Gson]
-        Gson -->|4. toJson(PostObj)| JsonString["JSON String ('{...}')"]
-    end
-    
-    JsonString -->|5. Request 객체에 담기| Client[MiniOkHttp Client]
-    
-    subgraph "Network Phase"
-        Client -->|6. Interceptor Chain| Network[NetworkInterceptor]
-        Network -->|7. connection.doOutput = true| Stream[OutputStream]
-        Stream -->|8. write(bytes)| Server[Remote Server]
-    end
-```
-
 ## REST Client 완성
 `@POST`와 `@Body`를 구현함으로써 완전한 REST Client를 구현할 수 있었습니다.
 - 동적 메서드 : `@GET`뿐만 아니라 `@POST` 등을 어노테이션만으로 교체할 수 있습니다.
