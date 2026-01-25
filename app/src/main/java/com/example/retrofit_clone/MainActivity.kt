@@ -18,6 +18,13 @@ import com.example.retrofit_clone.step4.api.PostRequest
 import com.example.retrofit_clone.step4.api.PostResponse
 import com.example.retrofit_clone.step5.MiniRetrofit5
 import com.example.retrofit_clone.step5.api.MyApi5
+import com.example.retrofit_clone.step6.MiniRetrofit6
+import com.example.retrofit_clone.step6.api.MyApi6
+import com.example.retrofit_clone.step6.api.SearchResponse
+import com.example.retrofit_clone.step6.converter.GsonConverterFactory
+import com.example.retrofit_clone.step6.okhttp.MiniOkHttpClient
+import com.example.retrofit_clone.step6.retrofit.Callback
+import com.example.retrofit_clone.step6.retrofit.MiniCall
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,6 +45,7 @@ class MainActivity : ComponentActivity() {
             miniRetrofit4Test()
             miniRetrofit5Test()
         }
+        miniRetrofit6Test()
     }
 
     private fun miniRetrofit1Test() {
@@ -179,5 +187,33 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun miniRetrofit6Test() {
+        val retrofit = MiniRetrofit6.Builder()
+            .baseUrl("https://api.github.com/")
+            .client(MiniOkHttpClient())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val api = retrofit.create(MyApi6::class.java)
+
+        println("🚀 비동기 요청 시작 (메인 스레드 안 멈춤!)")
+
+        // enqueue 사용 - 코루틴 스코프 필요 없음
+        api.searchUsers("jakewharton").enqueue(object : Callback<SearchResponse> {
+
+            override fun onResponse(call: MiniCall<SearchResponse>, response: SearchResponse) {
+                // 여기는 자동으로 메인 스레드입니다! UI 갱신 가능
+                println("✅ [Async] 성공! 개수: ${response.total_count}")
+                // textView.text = "성공"  <-- 가능
+            }
+
+            override fun onFailure(call: MiniCall<SearchResponse>, t: Throwable) {
+                println("❌ [Async] 실패: ${t.message}")
+            }
+        })
+
+        println("🏃 코드는 여기서 멈추지 않고 계속 실행됩니다...")
     }
 }
