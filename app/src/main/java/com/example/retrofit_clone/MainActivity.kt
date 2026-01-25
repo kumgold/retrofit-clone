@@ -25,6 +25,8 @@ import com.example.retrofit_clone.step6.converter.GsonConverterFactory
 import com.example.retrofit_clone.step6.okhttp.MiniOkHttpClient
 import com.example.retrofit_clone.step6.retrofit.Callback
 import com.example.retrofit_clone.step6.retrofit.MiniCall
+import com.example.retrofit_clone.step7.api.MyApi7
+import com.example.retrofit_clone.step7.retrofit.await
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -215,5 +217,36 @@ class MainActivity : ComponentActivity() {
         })
 
         println("🏃 코드는 여기서 멈추지 않고 계속 실행됩니다...")
+    }
+
+    private fun miniRetrofit7Test() {
+        // 설정은 Step 6와 동일
+        val retrofit = MiniRetrofit6.Builder() // Step 6의 Retrofit 재사용
+            .baseUrl("https://api.github.com/")
+            .client(MiniOkHttpClient())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val api = retrofit.create(MyApi7::class.java)
+
+        // 코루틴 스코프 시작 (UI 스레드에서 호출 가정)
+        CoroutineScope(Dispatchers.Main).launch {
+            println("🚀 Coroutine 요청 시작")
+
+            try {
+                // [핵심] await() 호출!
+                // 1. 여기서 코드가 잠시 '중단(Suspend)' 됩니다. (UI는 멈추지 않음)
+                // 2. 백그라운드에서 네트워크 통신을 합니다.
+                // 3. 결과가 오면 여기서부터 다시 '재개(Resume)' 됩니다.
+                val result = api.searchUsers("android").await()
+
+                // 마치 동기 코드처럼 결과를 바로 사용합니다.
+                println("✅ [Coroutine] 검색 결과: ${result.total_count}건")
+
+            } catch (e: Exception) {
+                // 네트워크 에러도 try-catch로 잡힙니다.
+                println("❌ [Coroutine] 에러 발생: ${e.message}")
+            }
+        }
     }
 }
