@@ -1,4 +1,4 @@
-# Converter & CallAdapter
+# 3. Converter & CallAdapter
 MiniRetrofit이 단순히 문자열(String)만 주고받는 장난감에서, 실제 객체를 자유자재로 다루는 상용 라이브러리 수준으로 진화할 수 있었던 이유는 바로 
 Converter와 CallAdapter라는 두 가지 핵심 컴포넌트 덕분입니다.
 

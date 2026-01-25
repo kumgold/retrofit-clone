@@ -1,4 +1,4 @@
-# Retrofit & OkHttp: 바닥부터 구현하며 원리 파헤치기
+# 2. Retrofit & OkHttp: 바닥부터 구현하며 원리 파헤치기
 안드로이드 개발의 필수 라이브러리인 Retrofit과 OkHttp.
 단순히 사용하는 것을 넘어, "도대체 내부에서 어떻게 동작하길래 인터페이스만으로 통신이 되는가?"
 에 대한 궁금증을 해소하기 위해 MiniRetrofit과 MiniOkHttp를 바닥부터 직접 구현해봅니다.
