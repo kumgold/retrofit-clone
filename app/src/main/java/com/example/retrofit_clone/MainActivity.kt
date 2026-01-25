@@ -3,19 +3,21 @@ package com.example.retrofit_clone
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
-import com.example.retrofit_clone.step3.api.User
-import com.example.retrofit_clone.step2.okhttp.Interceptor
-import com.example.retrofit_clone.step2.MiniRetrofit2
-import com.example.retrofit_clone.step2.okhttp.Response
 import com.example.retrofit_clone.step1.MiniRetrofit1
-import com.example.retrofit_clone.step3.MiniRetrofit3
-import com.example.retrofit_clone.step4.MiniRetrofit4
 import com.example.retrofit_clone.step1.api.MyApi1
+import com.example.retrofit_clone.step2.MiniRetrofit2
 import com.example.retrofit_clone.step2.api.MyApi2
+import com.example.retrofit_clone.step2.okhttp.Interceptor
+import com.example.retrofit_clone.step2.okhttp.Response
+import com.example.retrofit_clone.step3.MiniRetrofit3
 import com.example.retrofit_clone.step3.api.MyApi3
+import com.example.retrofit_clone.step3.api.User
+import com.example.retrofit_clone.step4.MiniRetrofit4
 import com.example.retrofit_clone.step4.api.MyApi4
 import com.example.retrofit_clone.step4.api.PostRequest
 import com.example.retrofit_clone.step4.api.PostResponse
+import com.example.retrofit_clone.step5.MiniRetrofit5
+import com.example.retrofit_clone.step5.api.MyApi5
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,6 +36,7 @@ class MainActivity : ComponentActivity() {
             miniRetrofit2Test()
             miniRetrofit3Test()
             miniRetrofit4Test()
+            miniRetrofit5Test()
         }
     }
 
@@ -143,6 +146,37 @@ class MainActivity : ComponentActivity() {
 
         } catch (e: Exception) {
             println("❌ 에러 발생: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    private fun miniRetrofit5Test() {
+        val retrofit = MiniRetrofit5.Builder()
+            .baseUrl("https://api.github.com/")
+            .client(com.example.retrofit_clone.step5.okhttp.MiniOkHttpClient())
+            .addConverterFactory(com.example.retrofit_clone.step5.converter.GsonConverterFactory.create())
+            .build()
+
+        val api = retrofit.create(MyApi5::class.java)
+
+        try {
+            println("🔍 검색 요청 시작 (Query)...")
+
+            // 1. 첫 번째 호출: ServiceMethod 생성 및 파싱 (약간의 오버헤드 발생)
+            val call = api.searchUsers("jakewharton")
+            val result = call.execute() // 실제 네트워크 요청
+
+            println("✅ 검색 결과: 총 ${result.total_count}명")
+            result.items.forEach { user ->
+                println("- [${user.id}] ${user.login}")
+            }
+
+            // 2. 두 번째 호출: 캐시된 ServiceMethod 사용 (파싱 과정 생략 -> 매우 빠름)
+            println("🔍 재검색 (캐시 사용)...")
+            api.searchUsers("kotlin").execute()
+            println("✅ 재검색 완료 (더 빠름)")
+
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }

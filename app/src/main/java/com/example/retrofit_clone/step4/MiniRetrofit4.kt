@@ -28,7 +28,7 @@ class MiniRetrofit4(
 
         fun baseUrl(url: String) = apply { this.baseUrl = url }
         fun client(client: MiniOkHttpClient) = apply { this.client = client }
-        fun addConverterFactory(factory: Converter.Factory) = apply { converterFactories.add(factory) }
+        fun addConverterFactory(factory: com.example.retrofit_clone.step4.converter.GsonConverterFactory) = apply { converterFactories.add(factory) }
         fun addCallAdapterFactory(factory: CallAdapter.Factory) = apply { callAdapterFactories.add(factory) }
 
         fun build(): MiniRetrofit4 {
